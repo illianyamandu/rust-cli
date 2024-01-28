@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs;
 
@@ -8,13 +9,13 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+#[derive(Debug)]
+struct CustomError(String);
+
+fn main() -> Result<()> {
     let args = Cli::parse();
-    let result = fs::read_to_string("test.txt");
-    let content = match result {
-        Ok(content) => content,
-        Err(error) => return Err(error.into()),
-    };
+    let content = fs::read_to_string(&args.path)
+        .with_context(|| format!("could not read file `{}`", args.path.display()))?;
 
     for line in content.lines() {
         if line.contains(&args.pattern) {
