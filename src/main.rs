@@ -1,6 +1,17 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::fs;
+use rust_cli::find_matches;
+use std::{
+    fs,
+    io::{self, Write},
+};
+
+#[test]
+fn find_a_match() {
+    let mut result = Vec::new();
+    find_matches("lorem ipsum\ndolor sit amet", "lorem", &mut result);
+    assert_eq!(result, b"lorem ipsum\n");
+}
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser)]
@@ -17,11 +28,7 @@ fn main() -> Result<()> {
     let content = fs::read_to_string(&args.path)
         .with_context(|| format!("could not read file `{}`", args.path.display()))?;
 
-    for line in content.lines() {
-        if line.contains(&args.pattern) {
-            println!("{}", line);
-        }
-    }
+    find_matches(&content, &args.pattern, &mut io::stdout());
 
     Ok(())
 }
